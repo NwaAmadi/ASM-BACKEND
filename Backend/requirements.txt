@@ -1,6 +1,6 @@
 ﻿Flask==2.3.2
 Flask-SQLAlchemy==3.0.3
-Flask-Cors==3.1.1
+Flask-Cors==5.0.0
 bcrypt==4.0.1
 twilio==7.16.1
 python-dotenv==0.21.0
