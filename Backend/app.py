@@ -8,7 +8,6 @@ from twilio.rest import Client
 from dotenv import load_dotenv
 import os
 from waitress import serve
-from waitress import serve
 from app import app
 
 # Initialize the Flask app
