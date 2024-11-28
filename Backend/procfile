@@ -1,1 +1,1 @@
-python -m waitress.server app:app
+web: python -m waitress.server app:app
