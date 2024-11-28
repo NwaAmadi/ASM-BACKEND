@@ -8,6 +8,8 @@ from twilio.rest import Client
 from dotenv import load_dotenv
 import os
 from waitress import serve
+from waitress import serve
+from app import app
 
 # Initialize the Flask app
 app = Flask(__name__)
@@ -158,6 +160,4 @@ def send_notification():
 CORS(app)
 
 if __name__ == '__main__':
-    # Use Waitress to serve the application
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host="0.0.0.0", port=port)
+    serve(app, host='0.0.0.0', port=5000)
