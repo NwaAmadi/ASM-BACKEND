@@ -7,7 +7,6 @@ import csv
 from twilio.rest import Client
 from dotenv import load_dotenv
 import os
-#from waitress import serve
 
 # Initialize the Flask app
 app = Flask(__name__)
@@ -18,14 +17,14 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///asm.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# Twilio config
+#Twilio config
 load_dotenv()
 
 ACCOUNT_SID = os.getenv('ACCOUNT_SID')
 AUTH_TOKEN = os.getenv('AUTH_TOKEN')
 TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER')
 
-# DB model
+#DB model
 class Program(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
@@ -56,6 +55,7 @@ def get_programs():
     ]
     return jsonify(programs_list), 200
 
+
 @app.route('/api/submit', methods=['POST'])
 def submit_program():
     data = request.get_json()
@@ -85,6 +85,7 @@ def submit_program():
     except Exception as e:
         return jsonify({"message": "Error saving data", "error": str(e)}), 500
 
+
 def get_db_connection():
     conn = sqlite3.connect('asm.db')
     conn.row_factory = sqlite3.Row 
@@ -92,25 +93,29 @@ def get_db_connection():
 
 @app.route('/api/login', methods=['POST'])
 def login():
+    
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
 
+    
     if not username or not password:
         return jsonify({"error": "Username and password are required"}), 400
 
     conn = get_db_connection()
 
+   
     user = conn.execute('SELECT * FROM admin_users WHERE username = ?', (username,)).fetchone()
 
+   
     if user is None:
         return jsonify({"error": "Invalid username or password"}), 401
 
+    
     if bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
         return jsonify({"message": "Login successful"}), 200  
     else:
         return jsonify({"error": "Invalid username or password"}), 401
-
 @app.route('/api/programs/<int:id>', methods=['DELETE'])
 def delete_program(id):
     program_to_delete = Program.query.get(id)
@@ -123,6 +128,7 @@ def delete_program(id):
         return jsonify({"message": "Program deleted successfully"}), 200
     except Exception as e:
         return jsonify({"error": "Error deleting program", "details": str(e)}), 500
+    
 
 @app.route('/api/send-notification', methods=['POST'])
 def send_notification():
@@ -157,8 +163,6 @@ def send_notification():
 
 CORS(app)
 
+
 if __name__ == '__main__':
-    from waitress import serve
-    # Get the port number from environment variables or default to 5000
-    port = int(os.environ.get('PORT', 5000))  
-    serve(app, host='0.0.0.0', port=port)  # Ensure
+    app.run(debug=True)
