@@ -13,7 +13,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///asm.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///program_database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -116,6 +116,8 @@ def login():
         return jsonify({"message": "Login successful"}), 200  
     else:
         return jsonify({"error": "Invalid username or password"}), 401
+    
+    
 @app.route('/api/programs/<int:id>', methods=['DELETE'])
 def delete_program(id):
     program_to_delete = Program.query.get(id)
@@ -165,5 +167,7 @@ CORS(app)
 
 
 if __name__ == '__main__':
+    #with app.app_context():
+        #db.create_all()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
