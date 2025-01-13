@@ -64,7 +64,7 @@ def submit_program():
     end_date = data.get('endDate')
     start_time = data.get('startTime')
     end_time = data.get('endTime')
-    location = data.get('Location')
+    location = data.get('location')
     about = data.get('about')
     speakers = data.get('speakers')
 
