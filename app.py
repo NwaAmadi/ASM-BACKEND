@@ -12,13 +12,24 @@ import os
 app = Flask(__name__)
 CORS(app)
 
+load_dotenv()
+
 # Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///program_database.db'
+RDS_USERNAME = os.getenv('RDS_USERNAME')
+RDS_PASSWORD = os.getenv('RDS_PASSWORD')
+RDS_HOST = os.getenv('RDS_HOST')
+RDS_PORT = os.getenv('RDS_PORT', 3306)
+RDS_DATABASE = os.getenv('RDS_DATABASE')
+
+
+app.config['SQLALCHEMY_DATABASE_URI'] = (
+    f'mysql+pymysql://{RDS_USERNAME}:{RDS_PASSWORD}@{RDS_HOST}:{RDS_PORT}/{RDS_DATABASE}'
+)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 #Twilio config
-load_dotenv()
+
 
 ACCOUNT_SID = os.getenv('ACCOUNT_SID')
 AUTH_TOKEN = os.getenv('AUTH_TOKEN')
@@ -167,7 +178,7 @@ CORS(app)
 
 
 if __name__ == '__main__':
-    #with app.app_context():
-        #db.create_all()
+    with app.app_context():
+        db.create_all()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
