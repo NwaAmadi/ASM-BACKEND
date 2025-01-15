@@ -22,7 +22,7 @@ CORS(app)
 load_dotenv()
 
 # JWT Configuration
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')  # Set your secret key here
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')  
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = int(os.getenv('JWT_ACCESS_TOKEN_EXPIRES'))  # 4 hours
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = int(os.getenv('JWT_REFRESH_TOKEN_EXPIRES'))  # 1 day
 jwt = JWTManager(app)
