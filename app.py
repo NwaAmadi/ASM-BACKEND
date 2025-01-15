@@ -1,6 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from flask_jwt_extended import (
+    JWTManager, 
+    create_access_token, 
+    create_refresh_token, 
+    jwt_required, 
+    get_jwt_identity
+)
 import bcrypt
 import sqlite3
 import csv
@@ -13,6 +20,12 @@ app = Flask(__name__)
 CORS(app)
 
 load_dotenv()
+
+# JWT Configuration
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')  # Set your secret key here
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = int(os.getenv('JWT_ACCESS_TOKEN_EXPIRES'))  # 4 hours
+app.config['JWT_REFRESH_TOKEN_EXPIRES'] = int(os.getenv('JWT_REFRESH_TOKEN_EXPIRES'))  # 1 day
+jwt = JWTManager(app)
 
 # Database configuration
 USER = os.getenv("user")
@@ -44,8 +57,32 @@ class Program(db.Model):
     about = db.Column(db.Text, nullable=True)
     speakers = db.Column(db.String(200), nullable=True)
 
-# Routes remain unchanged
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify({"error": "Username and password are required"}), 400
+
+    conn = sqlite3.connect('asm.db')
+    conn.row_factory = sqlite3.Row
+    user = conn.execute('SELECT * FROM admin_users WHERE username = ?', (username,)).fetchone()
+
+    if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
+        access_token = create_access_token(identity={"username": username})
+        refresh_token = create_refresh_token(identity={"username": username})
+        return jsonify({
+            "message": "Login successful",
+            "access_token": access_token,
+            "refresh_token": refresh_token
+        }), 200
+    else:
+        return jsonify({"error": "Invalid username or password"}), 401
+
 @app.route('/api/programs', methods=['GET'])
+@jwt_required()
 def get_programs():
     programs = Program.query.all()
     programs_list = [
@@ -56,14 +93,15 @@ def get_programs():
             'duration': f"{program.start_time} - {program.end_time}",
             'speakers': program.speakers,
             'date': program.start_date,
-            'location':program.location,
-            'about':program.about
+            'location': program.location,
+            'about': program.about
         }
         for program in programs
     ]
     return jsonify(programs_list), 200
 
 @app.route('/api/submit', methods=['POST'])
+@jwt_required()
 def submit_program():
     data = request.get_json()
     title = data.get('title')
@@ -92,40 +130,15 @@ def submit_program():
     except Exception as e:
         return jsonify({"message": "Error saving data", "error": str(e)}), 500
 
+@app.route('/api/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh_token():
+    current_user = get_jwt_identity()
+    new_access_token = create_access_token(identity=current_user)
+    return jsonify({"access_token": new_access_token}), 200
 
-def get_db_connection():
-    conn = sqlite3.connect('asm.db')
-    conn.row_factory = sqlite3.Row 
-    return conn
-
-@app.route('/api/login', methods=['POST'])
-def login():
-    
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-
-    
-    if not username or not password:
-        return jsonify({"error": "Username and password are required"}), 400
-
-    conn = get_db_connection()
-
-   
-    user = conn.execute('SELECT * FROM admin_users WHERE username = ?', (username,)).fetchone()
-
-   
-    if user is None:
-        return jsonify({"error": "Invalid username or password"}), 401
-
-    
-    if bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
-        return jsonify({"message": "Login successful"}), 200  
-    else:
-        return jsonify({"error": "Invalid username or password"}), 401
-    
-    
 @app.route('/api/programs/<int:id>', methods=['DELETE'])
+@jwt_required()
 def delete_program(id):
     program_to_delete = Program.query.get(id)
     if not program_to_delete:
@@ -137,9 +150,9 @@ def delete_program(id):
         return jsonify({"message": "Program deleted successfully"}), 200
     except Exception as e:
         return jsonify({"error": "Error deleting program", "details": str(e)}), 500
-    
 
 @app.route('/api/send-notification', methods=['POST'])
+@jwt_required()
 def send_notification():
     program_title = request.form.get('programTitle')
     message = request.form.get('message')
@@ -169,9 +182,6 @@ def send_notification():
         return jsonify({"message": "Notification sent successfully!"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-CORS(app)
-
 
 if __name__ == '__main__':
     with app.app_context():
