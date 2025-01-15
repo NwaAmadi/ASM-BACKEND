@@ -15,27 +15,24 @@ CORS(app)
 load_dotenv()
 
 # Database configuration
-RDS_USERNAME = os.getenv('RDS_USERNAME')
-RDS_PASSWORD = os.getenv('RDS_PASSWORD')
-RDS_HOST = os.getenv('RDS_HOST')
-RDS_PORT = os.getenv('RDS_PORT', 3306)
-RDS_DATABASE = os.getenv('RDS_DATABASE')
-
+USER = os.getenv("user")
+PASSWORD = os.getenv("password")
+HOST = os.getenv("host")
+PORT = os.getenv("port")
+DBNAME = os.getenv("dbname")
 
 app.config['SQLALCHEMY_DATABASE_URI'] = (
-    f'mysql+pymysql://{RDS_USERNAME}:{RDS_PASSWORD}@{RDS_HOST}:{RDS_PORT}/{RDS_DATABASE}'
+    f'postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}'
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-#Twilio config
-
-
+# Twilio config
 ACCOUNT_SID = os.getenv('ACCOUNT_SID')
 AUTH_TOKEN = os.getenv('AUTH_TOKEN')
 TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER')
 
-#DB model
+# DB model
 class Program(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
@@ -47,7 +44,7 @@ class Program(db.Model):
     about = db.Column(db.Text, nullable=True)
     speakers = db.Column(db.String(200), nullable=True)
 
-# Route to get all programs
+# Routes remain unchanged
 @app.route('/api/programs', methods=['GET'])
 def get_programs():
     programs = Program.query.all()
@@ -65,7 +62,6 @@ def get_programs():
         for program in programs
     ]
     return jsonify(programs_list), 200
-
 
 @app.route('/api/submit', methods=['POST'])
 def submit_program():
