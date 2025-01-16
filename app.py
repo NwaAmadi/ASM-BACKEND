@@ -71,8 +71,8 @@ def login():
     user = conn.execute('SELECT * FROM admin_users WHERE username = ?', (username,)).fetchone()
 
     if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
-        access_token = create_access_token(identity={"username": username}, additional_claims={"sub": username})
-        refresh_token = create_refresh_token(identity={"username": username}, additional_claims={"sub": username})
+        access_token = create_access_token(identity={"username": username})
+        refresh_token = create_refresh_token(identity={"username": username})
         return jsonify({
             "message": "Login successful",
             "access_token": access_token,
