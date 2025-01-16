@@ -182,6 +182,9 @@ def send_notification():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+@app.route('/', defaults={'path': ''})
+
 @app.route('/<path:path>')
 def catch_all(path):
     # Serving index.html for non-API routes
