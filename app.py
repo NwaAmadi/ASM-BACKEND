@@ -82,7 +82,6 @@ def login():
         return jsonify({"error": "Invalid username or password"}), 401
 
 @app.route('/api/programs', methods=['GET'])
-@jwt_required()
 def get_programs():
     programs = Program.query.all()
     programs_list = [
