@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_jwt_extended import (
@@ -181,6 +181,12 @@ def send_notification():
         return jsonify({"message": "Notification sent successfully!"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/<path:path>')
+def catch_all(path):
+    # Serving index.html for non-API routes
+    return send_from_directory(os.path.join(app.root_path, 'build'), 'index.html')
+
 
 if __name__ == '__main__':
     with app.app_context():
