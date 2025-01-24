@@ -71,8 +71,9 @@ def login():
     user = conn.execute('SELECT * FROM admin_users WHERE username = ?', (username,)).fetchone()
 
     if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
-        access_token = create_access_token(identity={"username": username})
-        refresh_token = create_refresh_token(identity={"username": username})
+        # Use username as the identity (a simple string)
+        access_token = create_access_token(identity=username)
+        refresh_token = create_refresh_token(identity=username)
         return jsonify({
             "message": "Login successful",
             "access_token": access_token,
@@ -80,6 +81,7 @@ def login():
         }), 200
     else:
         return jsonify({"error": "Invalid username or password"}), 401
+
 
 @app.route('/api/programs', methods=['GET'])
 def get_programs():
