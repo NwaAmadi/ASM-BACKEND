@@ -153,7 +153,7 @@ def delete_program(id):
         return jsonify({"error": "Error deleting program", "details": str(e)}), 500
 
 @app.route('/api/send-notification', methods=['POST'])
-@jwt_required()
+
 def send_notification():
     program_title = request.form.get('programTitle')
     message = request.form.get('message')
