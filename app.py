@@ -155,6 +155,7 @@ def delete_program(id):
 @app.route('/api/send-notification', methods=['POST'])
 
 def send_notification():
+@jwt_required()
     program_title = request.form.get('programTitle')
     message = request.form.get('message')
     csv_file = request.files.get('csvFile')
